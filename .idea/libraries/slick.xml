@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="slick">
+    <CLASSES>
+      <root url="jar://D:/Documents/Универ/Прога/opengl/slick.zip!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://D:/Documents/Универ/Прога/opengl/slick.zip!/javadoc" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://D:/Documents/Универ/Прога/opengl/slick.zip!/src" />
+      <root url="jar://D:/Documents/Универ/Прога/opengl/slick.zip!/tools" />
+    </SOURCES>
+  </library>
+</component>

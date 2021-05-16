@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="lib">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../../../../Program Files/JetBrains/IntelliJ IDEA Community Edition 2020.2.1/plugins/javaFX/lib" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../../../../Program Files/JetBrains/IntelliJ IDEA Community Edition 2020.2.1/plugins/javaFX/lib" />
+    </SOURCES>
+    <jarDirectory url="file://$PROJECT_DIR$/../../../../Program Files/JetBrains/IntelliJ IDEA Community Edition 2020.2.1/plugins/javaFX/lib" recursive="false" />
+    <jarDirectory url="file://$PROJECT_DIR$/../../../../Program Files/JetBrains/IntelliJ IDEA Community Edition 2020.2.1/plugins/javaFX/lib" recursive="false" type="SOURCES" />
+  </library>
+</component>

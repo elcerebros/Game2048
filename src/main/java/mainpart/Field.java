@@ -3,7 +3,7 @@ package mainpart;
 import java.util.Arrays;
 
 public class Field {
-    private int[][] field;
+    private final int[][] field;
 
     public Field(){
         field = new int[Constants.COUNT_CELLS_X][Constants.COUNT_CELLS_Y];
@@ -31,9 +31,11 @@ public class Field {
 
     public int[] getLine(int i) {
         int[] res = new int[Constants.COUNT_CELLS_X];
+
         for(int j = 0; j < Constants.COUNT_CELLS_X; j++) {
             res[j] = field[j][i];
         }
+
         return res;
     }
 

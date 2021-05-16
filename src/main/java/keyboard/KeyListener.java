@@ -1,11 +1,12 @@
 package keyboard;
 
+import mainpart.Direction;
 import mainpart.Main;
 
 public interface KeyListener {
     void update();
 
-    Main.Direction lastDirectionKeyPressed();
+    Direction lastDirectionKeyPressed();
 
     boolean wasEscPressed();
 }

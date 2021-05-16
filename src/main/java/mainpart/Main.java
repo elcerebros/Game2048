@@ -1,31 +1,30 @@
 package mainpart;
 
+import graphics.GameFrame;
+import keyboard.KeyListener;
+import keyboard.KeyListenerEvent;
+
 import java.util.Random;
 
 public class Main {
-    public static int score;
-    private static boolean endOfGame;
-    private static boolean flag2048;
     private static Field field;
     private static Direction direction;
-
-
-    public enum Direction {
-        UP, DOWN, LEFT, RIGHT, WAIT
-    }
+    private static GameFrame gameFrame;
+    private static KeyListener keyListener;
+    private static boolean endOfGame;
+    private static boolean reached2048;
+    public static int score;
 
     public static void main(String[] args) {
         initFields();
         createInitialCells();
+        gameFrame.draw(field);
 
         while (!endOfGame) {
             input();
             Logic();
-
-            //
+            gameFrame.draw(field);
         }
-
-        //
 
         printGameResult();
     }
@@ -33,10 +32,11 @@ public class Main {
     private static void initFields() {
         score = 0;
         endOfGame = false;
-        flag2048 = false;
+        reached2048 = false;
         field = new Field();
         direction = Direction.WAIT;
-        //
+        gameFrame = new GameFrame();
+        keyListener = new KeyListenerEvent();
     }
 
     private static void createInitialCells() {
@@ -47,25 +47,26 @@ public class Main {
 
     private static void Logic() {
         if (direction != Direction.WAIT) {
-            if (shift(direction)) generateNewCell();
+            if (shift(direction)) {
+                generateNewCell();
+            }
             direction = Direction.WAIT;
         }
     }
 
     private static void input() {
-        //KeyListener.update();
-        //direction = ;
+        keyListener.update();
+        direction = keyListener.lastDirectionKeyPressed();
+        endOfGame = endOfGame || keyListener.wasEscPressed();
     }
 
     private static void generateNewCell() {
         int number = (new Random().nextInt(100) <= Constants.CHANCE_OF_LUCKY_SPAWN)
                 ? Constants.LUCKY_INITIAL_CELL_NUMBER
                 : Constants.INITIAL_CELL_NUMBER;
-        int randomX, randomY;
-
-        randomX = new Random().nextInt(Constants.COUNT_CELLS_X);
+        int randomX = new Random().nextInt(Constants.COUNT_CELLS_X);
         int currentX = randomX;
-        randomY = new Random().nextInt(Constants.COUNT_CELLS_Y);
+        int randomY = new Random().nextInt(Constants.COUNT_CELLS_Y);
         int currentY = randomY;
 
         boolean placed = false;
@@ -85,11 +86,10 @@ public class Main {
                     }
                 }
                 if ((currentX == randomX) && (currentY == randomY)) {
-                    //error
+                    ExceptionsCatcher.cellCreationFail();
                 }
             }
         }
-
         score += number;
     }
 
@@ -103,7 +103,7 @@ public class Main {
 
         switch (direction) {
             case UP, DOWN -> {
-                for (int i = 0; i < Constants.COUNT_CELLS_Y; i++) {
+                for (int i = 0; i < Constants.COUNT_CELLS_X; i++) {
                     int[] arg = field.getColumn(i);
 
                     if (direction == Direction.UP) {
@@ -125,12 +125,11 @@ public class Main {
                     }
 
                     field.setColumn(i, res.shiftedRow);
-
                     ret = ret || res.didAnythingMove;
                 }
             }
             case LEFT, RIGHT -> {
-                for (int i = 0; i < Constants.COUNT_CELLS_X; i++) {
+                for (int i = 0; i < Constants.COUNT_CELLS_Y; i++) {
                     int[] arg = field.getLine(i);
 
                     if (direction == Direction.RIGHT) {
@@ -152,7 +151,6 @@ public class Main {
                     }
 
                     field.setLine(i, res.shiftedRow);
-
                     ret = ret || res.didAnythingMove;
                 }
             }
@@ -164,18 +162,19 @@ public class Main {
 
     private static ShiftRowRes shiftRow(int[] oldRow) {
         ShiftRowRes ret = new ShiftRowRes();
-
         int[] oldRowWithoutZeroes = new int[oldRow.length];
+
         {
             int q = 0;
+            for (int i : oldRow) {
+                if (oldRow[i] != 0) {
+                    if (i == 0) {
+                        ret.didAnythingMove = true;
+                    }
 
-            for (int j : oldRow) {
-                if (j == 0) {
-                    ret.didAnythingMove = true;
+                    oldRowWithoutZeroes[q] = i;
+                    q++;
                 }
-
-                oldRowWithoutZeroes[q] = j;
-                q++;
             }
 
             for (int i = q; i < oldRowWithoutZeroes.length; i++){
@@ -189,7 +188,6 @@ public class Main {
             int q = 0;
             {
                 int i = 0;
-
                 while (i < oldRowWithoutZeroes.length) {
                     if ((i + 1 < oldRowWithoutZeroes.length) && (oldRowWithoutZeroes[i] == oldRowWithoutZeroes[i + 1])
                             && (oldRowWithoutZeroes[i] != 0)) {
@@ -202,11 +200,11 @@ public class Main {
                     } else {
                         ret.shiftedRow[q] = oldRowWithoutZeroes[i];
                     }
-
                     q++;
                     i++;
                 }
             }
+
             for (int j = q; j < ret.shiftedRow.length; j++) {
                 ret.shiftedRow[j] = 0;
             }
@@ -217,11 +215,11 @@ public class Main {
 
     private static void merged2048() {
         endOfGame = true;
-        flag2048 = true;
+        reached2048 = true;
     }
 
     private static void printGameResult() {
-        System.out.println("You " + (flag2048 ? "won!" : "lost(") );
+        System.out.println("You " + (reached2048 ? "won!" : "lost(") );
         System.out.println("Your score is " + score);
     }
 }
