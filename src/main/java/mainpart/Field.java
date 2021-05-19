@@ -2,11 +2,13 @@ package mainpart;
 
 import java.util.Arrays;
 
+import static mainpart.Constants.*;
+
 public class Field {
     private final int[][] field;
 
     public Field(){
-        field = new int[Constants.COUNT_CELLS_X][Constants.COUNT_CELLS_Y];
+        field = new int[COUNT_CELLS_X][COUNT_CELLS_Y];
 
         for (int[] ints : field) {
             Arrays.fill(ints, 0);
@@ -30,9 +32,9 @@ public class Field {
     }
 
     public int[] getLine(int i) {
-        int[] res = new int[Constants.COUNT_CELLS_X];
+        int[] res = new int[COUNT_CELLS_X];
 
-        for(int j = 0; j < Constants.COUNT_CELLS_X; j++) {
+        for(int j = 0; j < COUNT_CELLS_X; j++) {
             res[j] = field[j][i];
         }
 
@@ -40,7 +42,7 @@ public class Field {
     }
 
     public void setLine(int i, int[] newLine) {
-        for(int j = 0; i < Constants.COUNT_CELLS_X; j++) {
+        for(int j = 0; j < COUNT_CELLS_X; j++) {
             field[j][i] = newLine[j];
         }
     }

@@ -1,95 +1,87 @@
 package graphics;
 
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.RowConstraints;
 import javafx.stage.Stage;
-import mainpart.Constants;
-import mainpart.Direction;
-import mainpart.Field;
-import mainpart.Main;
 
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.InputStream;
 
-import static javafx.application.Application.launch;
+import mainpart.Field;
+
+import static mainpart.Constants.*;
+import static mainpart.Logic.*;
 
 public class GameFrame extends Application {
-    private GraphicsSpriteSystem spriteSystem;
+    private boolean wasEscPressed = false;
 
-    private final javafx.scene.canvas.Canvas canvas = new Canvas(Constants.CELL_SIZE * 4, Constants.CELL_SIZE * 4);
-    private final GraphicsContext gc = canvas.getGraphicsContext2D();
+    private final Group root = new Group();
 
-    private Direction lastDirectionKeyPressed;
-    private boolean wasEscPressed;
+    private final Scene scene = new Scene(root);
 
-    public GameFrame() {
-        spriteSystem = new GraphicsSpriteSystem();
-    }
+    private final GridPane gridPane = new GridPane();
 
-    public static void main(String[] args) {
-        launch(args);
-    }
+    private final GraphicsImageSystem spriteSystem;
+
+    public GameFrame() { spriteSystem = new GraphicsImageSystem(); }
 
     public void start(Stage primaryStage) {
-        primaryStage.setTitle(Constants.NAME);
-        Group root = new Group();
+        primaryStage.setScene(scene);
+        primaryStage.setTitle(NAME);
 
         InputStream iconStream = getClass().getResourceAsStream("/icon.png");
-        Image image = new Image(iconStream);
-        primaryStage.getIcons().add(image);
+        Image imageIcon = new Image(iconStream);
+        primaryStage.getIcons().add(imageIcon);
 
-        GridPane gridPane = new GridPane();
-        for (int i = 0; i < 4; i++) {
-            gridPane.getColumnConstraints().add(new ColumnConstraints(Constants.CELL_SIZE));
-            gridPane.getRowConstraints().add(new RowConstraints(Constants.CELL_SIZE));
+        root.getChildren().add(gridPane);
+        for (int i = 0; i < COUNT_CELLS_X; i++) {
+            gridPane.getColumnConstraints().add(new ColumnConstraints(CELL_SIZE));
         }
-
-        /*
-        InputStream ImageStream = getClass().getResourceAsStream("/textures/4.png");
-        Image image1 = new Image(ImageStream);
-        ImageView image2 = new ImageView(image1);
-        gridPane.add(image2, 1, 1);
-         */
-
+        for (int i = 0; i < COUNT_CELLS_Y; i++) {
+            gridPane.getRowConstraints().add(new RowConstraints(CELL_SIZE));
+        }
         gridPane.setGridLinesVisible(true);
 
-        root.getChildren().add(canvas);
-        root.getChildren().add(gridPane);
-        Scene scene = new Scene(root);
-        primaryStage.setScene(scene);
         primaryStage.show();
+        draw(field);
+
+        scene.setOnKeyPressed(
+                keyEvent -> {
+                    switch (keyEvent.getCode().toString()) {
+                        case "UP" -> direction = "UP";
+                        case "DOWN" -> direction = "DOWN";
+                        case "LEFT" -> direction = "LEFT";
+                        case "RIGHT" -> direction = "RIGHT";
+                        case "ESCAPE" -> wasEscPressed = true;
+                    }
+                }
+        );
+
+        new AnimationTimer() {
+            public void handle(long currentNanoTime) {
+                if (!wasEscPressed && !endOfGame) {
+                    logicOfGame();
+                    draw(field);
+                } else { primaryStage.close(); }
+            }
+        }.start();
     }
 
     public void draw(Field field) {
-        for (int i = 0; i < Constants.COUNT_CELLS_X; i++) {
-            for (int j = 0; j < Constants.COUNT_CELLS_Y; j++) {
-                drawCell(i * Constants.CELL_SIZE, j * Constants.CELL_SIZE, field.getNumber(i, j));
+        for (int i = 0; i < COUNT_CELLS_X; i++) {
+            for (int j = 0; j < COUNT_CELLS_Y; j++) {
+                drawCell (field.getNumber(i, j), i, j);
             }
         }
     }
 
-    private void drawCell(int x, int y, int number) {
-        gc.drawImage(spriteSystem.getSpriteByNumber(number).getImage(), x, y);
-    }
-
-    private void resetValues() {
-        lastDirectionKeyPressed = Direction.WAIT;
-        wasEscPressed = false;
-    }
-
-    public Direction lastDirectionKeyPressed() {
-        return lastDirectionKeyPressed;
-    }
-
-    public boolean wasEscPressed() {
-        return wasEscPressed;
+    private void drawCell(int number, int x, int y) {
+        gridPane.add(new ImageView(spriteSystem.getSpriteByNumber(number).getImage()), x, y);
     }
 }
