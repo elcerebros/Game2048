@@ -11,25 +11,70 @@ public class Logic {
 
     public static boolean endOfGame; //Флаг конца игры
 
-    private static boolean reached2048; //Флаг достижения ячейки с числом 2048
+    public static boolean reached2048; //Флаг достижения ячейки с числом 2048
 
     public static int score; //Счёт игрока
 
-    private static class ShiftRowRes {
-        boolean zerosExist;
+    private static class ShiftRowRes { //Вспомогательный класс при сдвиге ячеек
+        boolean existenceOfZeroOrSameCells;
         int[] shiftedRow;
     }
 
-    public static void logicOfGame() {
+    //Алгоритм сдвига ячеек
+    public static void logicOfShifting() {
         if (!direction.equals("WAIT")) {
-            if (shift(direction)) { generateNewCell(); }
-            else { ExceptionsCatcher.cellCreationFail(); }
-
+            if (shift(direction)) generateNewCell();
+            else ExceptionsCatcher.cellCreationFail();
             direction = "WAIT";
         }
     }
 
-    private static boolean shift(String direction) { //Главная ф-ия сдвига ячеек
+    //Инициатор полей программы
+    public static void init() {
+        field = new Field();
+        direction = "WAIT";
+        endOfGame = false;
+        reached2048 = false;
+        score = 0;
+    }
+
+    //Инициация первых ячеек при запуске программы
+    public static void createInitialCells() {
+        for (int i = 0; i < COUNT_INITIAL_CELLS; i++) {
+            generateNewCell();
+        }
+    }
+
+    //Генерация ячеек
+    private static void generateNewCell() {
+        int number = (new Random().nextInt(100) <= CHANCE_OF_LUCKY_SPAWN)
+                ? LUCKY_INITIAL_CELL_NUMBER
+                : INITIAL_CELL_NUMBER;
+        int randomX = new Random().nextInt(COUNT_CELLS_X);
+        int currentX = randomX;
+        int randomY = new Random().nextInt(COUNT_CELLS_Y);
+        int currentY = randomY;
+
+        boolean placed = false;
+        while (!placed) {
+            if (field.getNumber(currentX, currentY) == 0) {
+                field.setNumber(currentX, currentY, number);
+                placed = true;
+            } else {
+                if (currentX + 1 < COUNT_CELLS_X) currentX++;
+                else {
+                    currentX = 0;
+                    if (currentY + 1 < COUNT_CELLS_Y) currentY++;
+                    else currentY = 0;
+                }
+                if (currentX == randomX && currentY == randomY) ExceptionsCatcher.cellCreationFail();
+            }
+        }
+        score += number;
+    }
+
+    //Главная ф-ия сдвига ячеек
+    private static boolean shift(String direction) {
         boolean ret = false;
 
         switch (direction) {
@@ -60,7 +105,7 @@ public class Logic {
                     }
 
                     field.setColumn(i, res.shiftedRow);
-                    ret = ret || res.zerosExist;
+                    ret = ret || res.existenceOfZeroOrSameCells;
                 }
             }
             case "LEFT", "RIGHT" -> {
@@ -90,7 +135,7 @@ public class Logic {
                     }
 
                     field.setLine(i, res.shiftedRow);
-                    ret = ret || res.zerosExist;
+                    ret = ret || res.existenceOfZeroOrSameCells;
                 }
             }
             default -> ExceptionsCatcher.shiftFail();
@@ -99,18 +144,19 @@ public class Logic {
         return ret;
     }
 
-    private static ShiftRowRes shiftRow(int[] oldRow) { //Ф-ия сдвига ячеек, которая сдвигает нули и складывает одинаковые  соседние ячейки
+    //Ф-ия сдвига ячеек, которая сдвигает нули и складывает одинаковые  соседние ячейки
+    private static ShiftRowRes shiftRow(int[] oldRow) {
         ShiftRowRes ret = new ShiftRowRes();
         int[] oldRowWithoutZeroes = new int[oldRow.length];
 
         { //Сдвиг нулей
             int q = 0;
 
-            for (int i = 0; i < oldRow.length; i++) {
-                if (oldRow[i] != 0) {
-                    oldRowWithoutZeroes[q] = oldRow[i];
+            for (int j : oldRow) {
+                if (j != 0) {
+                    oldRowWithoutZeroes[q] = j;
                     q++;
-                } else { ret.zerosExist = true; }
+                } else ret.existenceOfZeroOrSameCells = true;
             }
 
             for (int i = q; i < oldRowWithoutZeroes.length; i++){
@@ -128,12 +174,12 @@ public class Logic {
                 while (i < oldRowWithoutZeroes.length) {
                     if ((i + 1 < oldRowWithoutZeroes.length) && (oldRowWithoutZeroes[i] == oldRowWithoutZeroes[i + 1])
                             && (oldRowWithoutZeroes[i] != 0)) {
+                        ret.existenceOfZeroOrSameCells = true;
                         ret.shiftedRow[q] = oldRowWithoutZeroes[i] * 2;
-                        if (ret.shiftedRow[q] == 2048) {
-                            flagEndOfGame();
-                        }
+
+                        if (ret.shiftedRow[q] == 2048) flagEndOfGame();
                         i++;
-                    } else { ret.shiftedRow[q] = oldRowWithoutZeroes[i]; }
+                    } else ret.shiftedRow[q] = oldRowWithoutZeroes[i];
 
                     q++;
                     i++;
@@ -148,58 +194,8 @@ public class Logic {
         return ret;
     }
 
-    public static void init() { //Инициатор полей программы
-        field = new Field();
-        direction = "WAIT";
-        endOfGame = false;
-        reached2048 = false;
-        score = 0;
-    }
-
-    public static void createInitialCells() { //Инициация первых ячеек при запуске программы
-        for (int i = 0; i < COUNT_INITIAL_CELLS; i++) {
-            generateNewCell();
-        }
-    }
-
-    private static void generateNewCell() { //Генерация ячеек
-        int number = (new Random().nextInt(100) <= CHANCE_OF_LUCKY_SPAWN)
-                ? LUCKY_INITIAL_CELL_NUMBER
-                : INITIAL_CELL_NUMBER;
-        int randomX = new Random().nextInt(COUNT_CELLS_X);
-        int currentX = randomX;
-        int randomY = new Random().nextInt(COUNT_CELLS_Y);
-        int currentY = randomY;
-
-        boolean placed = false;
-        while (!placed) {
-            if (field.getNumber(currentX, currentY) == 0) {
-                field.setNumber(currentX, currentY, number);
-                placed = true;
-            } else {
-                if (currentX + 1 < COUNT_CELLS_X) {
-                    currentX++;
-                } else {
-                    currentX = 0;
-                    if (currentY + 1 < COUNT_CELLS_Y) {
-                        currentY++;
-                    } else { currentY = 0; }
-                }
-                if ((currentX == randomX) && (currentY == randomY)) {
-                    ExceptionsCatcher.cellCreationFail();
-                }
-            }
-        }
-        score += number;
-    }
-
     private static void flagEndOfGame() {
         endOfGame = true;
         reached2048 = true;
-    }
-
-    public static void printGameResult() {
-        System.out.println("You " + (reached2048 ? "won!" : "lost(") );
-        System.out.println("Your score is " + score);
     }
 }

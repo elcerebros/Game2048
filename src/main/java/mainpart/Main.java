@@ -7,8 +7,7 @@ import static mainpart.Logic.*;
 
 public class Main {
     public static void main(String[] args) {
+        init();
         Application.launch(GameApp.class, args);
-
-        printGameResult();
     }
 }
